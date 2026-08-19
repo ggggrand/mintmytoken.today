@@ -82,7 +82,7 @@ Flask (app.py) — REST API + page routing
 | Blockchain | PyCardano 0.10+ |
 | Chain API | Blockfrost |
 | Database | SQLite (vesting schedules) |
-| Server | Gunicorn + Apache2 on OVH VPS |
+| Server | Gunicorn + Apache2 |
 | Frontend | Vanilla JS + CIP-30 wallet API |
 | SSL | Let's Encrypt (certbot) |
 
