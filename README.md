@@ -9,11 +9,11 @@
 
 MintMyToken is an open-access SaaS platform built on Cardano that allows anyone to:
 
-1. **Mint custom tokens** — set name, ticker, supply, decimals, image and metadata in minutes
-2. **Vest token distributions** — lock tokens for teams, investors and communities using native script timelocks
-3. **Claim vested tokens** — recipients claim directly from their CIP-30 wallet when tranches unlock
+1. **Mint custom tokens** - set name, ticker, supply, decimals, image and metadata in minutes
+2. **Vest token distributions** - lock tokens for teams, investors and communities using native script timelocks
+3. **Claim vested tokens** - recipients claim directly from their CIP-30 wallet when tranches unlock
 
-Everything is **on-chain and trustless**. Once tokens are locked in a vesting schedule, not even the platform owner can touch them — enforced by Cardano's consensus rules.
+Everything is **on-chain and trustless**. Once tokens are locked in a vesting schedule, not even the platform owner can touch them - enforced by Cardano's consensus rules.
 
 ---
 
@@ -36,16 +36,16 @@ Launching a token on Cardano currently requires:
 - Image upload embedded in CIP-25 metadata (64-byte safe splitting)
 - Preprod testnet + Mainnet support
 - CIP-30 wallet connect (Eternl, Typhon, NuFi)
-- Flat fee model — 50 ADA per mint
+- Flat fee model - 50 ADA per mint
 
 ### Token Vesting Launchpad
-- **Cliff vesting** — all tokens unlock on one date
-- **Linear vesting** — split into equal tranches over time
-- **Bulk CSV upload** — distribute to 1000+ addresses at once
-- **Named groups** — Team / Investors / Community each with own schedule
-- **Batch signing** — large distributions auto-split into 20-output batches
+- **Cliff vesting** - all tokens unlock on one date
+- **Linear vesting** - split into equal tranches over time
+- **Bulk CSV upload** - distribute to 1000+ addresses at once
+- **Named groups** - Team / Investors / Community each with own schedule
+- **Batch signing** - large distributions auto-split into 20-output batches
 - Native script timelocks: `ScriptAll([ScriptPubkey(recipient), InvalidBefore(unlock_slot)])`
-- Scripts embedded in TX metadata (label 674) — claiming works even if website is down
+- Scripts embedded in TX metadata (label 674) - claiming works even if website is down
 - Service fee: 10 ADA per vesting project
 
 ### Claim Portal
@@ -95,7 +95,7 @@ ScriptAll([
 ])
 ```
 - Owner has **zero keys** to vesting script addresses
-- Scripts are stored in TX metadata (label 674) — fully recoverable on-chain
+- Scripts are stored in TX metadata (label 674) - fully recoverable on-chain
 - No admin functions, no upgrade keys, no backdoors
 - Verifiable on Cardano explorer by anyone
 
