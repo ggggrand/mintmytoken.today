@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claim Vested Tokens — MintMyToken</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#0b0e17;--bg2:#111522;--card:#151924;--card2:#1a2035;--border:#1e2a45;--border2:#253050;--blue:#1a56db;--blue2:#2d6ef7;--blue-glow:#1a56db40;--gold:#f5a623;--gold2:#ffbd5a;--text:#e4ecff;--muted:#6878a0;--muted2:#8896b8;--success:#22c55e;--error:#ef4444;--radius:12px;--radius2:8px}
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;font-size:16px;line-height:1.6;min-height:100vh}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% -10%,#0d2060 0%,transparent 60%);pointer-events:none;z-index:0}
+
+    nav{position:sticky;top:0;z-index:100;backdrop-filter:blur(20px);background:rgba(11,14,23,.9);border-bottom:1px solid var(--border);padding:0 2rem}
+    .nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px}
+    .logo{display:flex;align-items:center;gap:10px;font-family:'Space Mono',monospace;font-weight:700;font-size:1.05rem;color:var(--text);text-decoration:none}
+    .logo img{height:28px;width:28px;border-radius:6px;object-fit:cover}
+    .nav-links{display:flex;gap:1.8rem;align-items:center}
+    .nav-links a{color:var(--muted2);text-decoration:none;font-size:.88rem;font-weight:500;transition:color .2s}
+    .nav-links a:hover{color:var(--text)}
+    .nav-links a.active{color:var(--success);font-weight:700}
+
+    main{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:2.5rem 1.5rem 6rem}
+    h1{font-size:1.9rem;font-weight:800;margin-bottom:.4rem}
+    .page-sub{color:var(--muted2);font-size:.92rem;margin-bottom:2rem}
+
+    /* Connect section */
+    .connect-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;margin-bottom:1.5rem}
+    .wallet-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:1.2rem}
+    .wallet-btn{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--border2);color:var(--text);padding:12px 16px;border-radius:var(--radius2);font-family:'Syne',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .2s;width:100%}
+    .wallet-btn:hover{border-color:var(--blue);background:var(--blue-glow)}
+    .wallet-btn img{width:20px;height:20px;border-radius:4px;object-fit:contain}
+
+    /* Connected bar */
+    .connected-bar{background:var(--card);border:1px solid #22c55e40;border-radius:var(--radius2);padding:1rem 1.2rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;gap:1rem}
+    .connected-addr{font-family:'Space Mono',monospace;font-size:.78rem;color:var(--success);word-break:break-all}
+    .btn-sm{background:transparent;border:1px solid var(--border2);color:var(--muted2);border-radius:6px;padding:5px 12px;cursor:pointer;font-size:.78rem;font-family:'Syne',sans-serif;transition:all .2s;white-space:nowrap}
+    .btn-sm:hover{border-color:var(--muted2);color:var(--text)}
+
+    /* Tranches */
+    .tranches-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+    .tranches-header h2{font-size:1.1rem;font-weight:700}
+    .tranche-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.4rem;margin-bottom:.8rem;transition:border-color .2s}
+    .tranche-card.unlocked{border-color:#22c55e50}
+    .tranche-card.claimed{opacity:.5}
+    .tc-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:.8rem}
+    .tc-project{font-size:.78rem;color:var(--muted2);margin-bottom:.2rem}
+    .tc-group{font-size:.82rem;color:var(--blue2);font-weight:600}
+    .tc-amount{font-family:'Space Mono',monospace;font-size:1.1rem;font-weight:700;text-align:right;white-space:nowrap}
+    .tc-token{font-size:.75rem;color:var(--muted2);text-align:right}
+    .tc-date{font-size:.82rem;color:var(--muted2);margin-bottom:.8rem}
+    .tc-date .date-val{color:var(--text);font-weight:600}
+    .unlock-pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:.72rem;font-weight:700;margin-bottom:.8rem}
+    .pill-locked{background:#f59e0b15;border:1px solid #f59e0b40;color:var(--gold2)}
+    .pill-unlocked{background:#22c55e15;border:1px solid #22c55e40;color:var(--success)}
+    .pill-claimed{background:var(--card2);border:1px solid var(--border2);color:var(--muted)}
+    .btn-claim{background:var(--success);color:#fff;border:none;padding:10px 24px;border-radius:var(--radius2);font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .2s;width:100%}
+    .btn-claim:hover{background:#16a34a;box-shadow:0 4px 16px #22c55e30}
+    .btn-claim:disabled{background:var(--card2);color:var(--muted);cursor:not-allowed}
+
+    /* Info box */
+    .info-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:1rem 1.2rem;font-size:.83rem;color:var(--muted2);margin-bottom:1rem}
+    .err-msg{background:#ef444415;border:1px solid #ef444440;color:var(--error);border-radius:var(--radius2);padding:10px 14px;font-size:.84rem;margin-bottom:1rem;display:none}
+    .spinner{width:14px;height:14px;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* Empty state */
+    .empty-state{text-align:center;padding:3rem 1rem;color:var(--muted2)}
+    .empty-icon{font-size:2.5rem;margin-bottom:1rem}
+
+    /* Claim success */
+    .claim-success{background:#22c55e12;border:1px solid #22c55e40;border-radius:var(--radius2);padding:1rem 1.2rem;font-size:.84rem;color:var(--success);margin-top:.8rem;display:none}
+
+    footer{position:relative;z-index:1;border-top:1px solid var(--border);text-align:center;padding:2rem;color:var(--muted);font-size:.82rem}
+    footer a{color:var(--muted2);text-decoration:none}
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">
+      <img src="/static/mintmytoken.png" alt="" onerror="this.style.display='none'">
+      MintMyToken
+    </a>
+    <div class="nav-links">
+      <a href="/">Mint</a>
+      <a href="/vest">Vesting</a>
+      <a href="/claim" class="active">Claim</a>
+      <a href="/terms" target="_blank">Terms</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <h1>🔓 Claim Vested Tokens</h1>
+  <p class="page-sub">Connect your wallet to see your vested tokens and claim the ones that have unlocked.</p>
+
+  <div class="err-msg" id="global-err"></div>
+
+  <!-- Connect wallet -->
+  <div id="connect-section">
+    <div class="connect-card">
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:.4rem">Connect Your Wallet</h3>
+      <p style="font-size:.84rem;color:var(--muted2)">We'll check your address against all active vesting schedules.</p>
+      <div class="wallet-grid">
+        <button class="wallet-btn" onclick="claimConnect('eternl')"><img src="https://eternl.io/icons/favicon-128x128.png" alt=""> Eternl</button>
+        <button class="wallet-btn" onclick="claimConnect('typhoncip30')"><img src="https://typhonwallet.io/favicon.ico" alt=""> Typhon</button>
+        <button class="wallet-btn" onclick="claimConnect('lace')"><img src="https://lace.io/favicon.ico" alt=""> Lace</button>
+        <button class="wallet-btn" onclick="claimConnect('nufi')"><img src="https://nu.fi/favicon/favicon-32x32.png" alt=""> NuFi</button>
+      </div>
+    </div>
+
+    <div class="info-box">
+      💡 You can also check a specific address without connecting a wallet:
+      <input type="text" id="manual-addr" placeholder="addr1..." style="margin-top:.6rem">
+      <select id="manual-network" style="margin-top:.5rem">
+        <option value="mainnet">Mainnet</option>
+        <option value="preprod">Preprod</option>
+      </select>
+      <button onclick="lookupManual()" style="background:var(--blue);color:#fff;border:none;padding:8px 20px;border-radius:var(--radius2);font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;margin-top:.5rem;width:100%">
+        Check Address
+      </button>
+    </div>
+  </div>
+
+  <!-- Connected -->
+  <div id="connected-section" style="display:none">
+    <div class="connected-bar">
+      <div>
+        <div style="font-size:.75rem;color:var(--muted2);margin-bottom:2px">Connected wallet</div>
+        <div class="connected-addr" id="claim-addr-display">—</div>
+      </div>
+      <button class="btn-sm" onclick="claimDisconnect()">Disconnect</button>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading-tranches" style="text-align:center;padding:2rem;color:var(--muted2)">
+      <div class="spinner" style="width:28px;height:28px;margin:0 auto 1rem;color:var(--blue2)"></div>
+      <div>Checking vesting schedules…</div>
+    </div>
+
+    <!-- Tranche list -->
+    <div id="tranches-section" style="display:none">
+      <div class="tranches-header">
+        <h2 id="tranches-title">Your Vested Tokens</h2>
+        <span id="tranche-count-badge" style="background:var(--card2);border:1px solid var(--border2);border-radius:99px;padding:3px 12px;font-size:.75rem;font-weight:700">—</span>
+      </div>
+      <div id="tranches-list"></div>
+    </div>
+
+    <!-- Empty -->
+    <div id="no-tranches" style="display:none">
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <h3 style="margin-bottom:.5rem">No vesting schedules found</h3>
+        <p>This address has no tokens vested through MintMyToken.</p>
+        <p style="margin-top:.5rem">Are you on the right network? Try switching between Mainnet and Preprod.</p>
+        <div style="margin-top:1.2rem;display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap">
+          <button onclick="switchNet('mainnet')" style="background:var(--card2);border:1px solid var(--border2);color:var(--text);border-radius:var(--radius2);padding:8px 18px;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600">Check Mainnet</button>
+          <button onclick="switchNet('preprod')" style="background:var(--card2);border:1px solid var(--border2);color:var(--text);border-radius:var(--radius2);padding:8px 18px;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600">Check Preprod</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p>MintMyToken · <a href="/">Mint Token</a> · <a href="/vest">Vesting Launchpad</a></p>
+</footer>
+
+<script>
+let claimWalletApi = null;
+let claimAddr      = null;
+let claimNetwork   = 'mainnet';
+let tranchesData   = [];
+
+async function claimConnect(name) {
+  clearErr('global-err');
+  if (!window.cardano?.[name]) { showErr('global-err',`${name} wallet not found.`); return; }
+  try {
+    claimWalletApi = await window.cardano[name].enable();
+    const raw = await claimWalletApi.getChangeAddress();
+    claimAddr = raw;
+
+    // Try to detect network from wallet
+    try {
+      const netId = await claimWalletApi.getNetworkId();
+      claimNetwork = netId === 1 ? 'mainnet' : 'preprod';
+    } catch(e) { claimNetwork = 'mainnet'; }
+
+    document.getElementById('claim-addr-display').textContent = raw.slice(0,36)+'...';
+    document.getElementById('connect-section').style.display    = 'none';
+    document.getElementById('connected-section').style.display  = 'block';
+
+    await loadTranches();
+  } catch(e) { showErr('global-err','Wallet error: '+e.message); }
+}
+
+function claimDisconnect() {
+  claimWalletApi = null; claimAddr = null;
+  document.getElementById('connect-section').style.display    = 'block';
+  document.getElementById('connected-section').style.display  = 'none';
+}
+
+async function lookupManual() {
+  const addr = document.getElementById('manual-addr').value.trim();
+  claimNetwork = document.getElementById('manual-network').value;
+  if (!addr) return;
+  claimAddr = addr;
+  document.getElementById('claim-addr-display').textContent = addr.slice(0,36)+'...';
+  document.getElementById('connect-section').style.display    = 'none';
+  document.getElementById('connected-section').style.display  = 'block';
+  await loadTranches();
+}
+
+async function switchNet(net) {
+  claimNetwork = net;
+  await loadTranches();
+}
+
+async function loadTranches() {
+  document.getElementById('loading-tranches').style.display  = 'block';
+  document.getElementById('tranches-section').style.display  = 'none';
+  document.getElementById('no-tranches').style.display       = 'none';
+
+  try {
+    const resp = await fetch(`/api/claim-tranches?address=${encodeURIComponent(claimAddr)}&network=${claimNetwork}`);
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+
+    tranchesData = data.tranches || [];
+    document.getElementById('loading-tranches').style.display = 'none';
+
+    if (tranchesData.length === 0) {
+      document.getElementById('no-tranches').style.display = 'block';
+      return;
+    }
+
+    renderTranches();
+    document.getElementById('tranches-section').style.display = 'block';
+
+  } catch(e) {
+    document.getElementById('loading-tranches').style.display = 'none';
+    showErr('global-err','Error loading tranches: '+e.message);
+  }
+}
+
+function renderTranches() {
+  const unlocked = tranchesData.filter(t=>t.claimable).length;
+  const locked   = tranchesData.filter(t=>!t.claimable && t.status==='locked').length;
+  const claimed  = tranchesData.filter(t=>t.status==='claimed').length;
+
+  document.getElementById('tranches-title').textContent = `Your Vested Tokens (${claimNetwork.toUpperCase()})`;
+  document.getElementById('tranche-count-badge').textContent =
+    `${unlocked} claimable · ${locked} locked · ${claimed} claimed`;
+
+  const list = document.getElementById('tranches-list');
+  list.innerHTML = '';
+
+  // Sort: claimable first, then locked by date, then claimed
+  const sorted = [...tranchesData].sort((a,b) => {
+    if (a.claimable && !b.claimable) return -1;
+    if (!a.claimable && b.claimable) return 1;
+    return a.unlock_slot - b.unlock_slot;
+  });
+
+  sorted.forEach(t => {
+    const div = document.createElement('div');
+    div.className = `tranche-card ${t.claimable?'unlocked':''} ${t.status==='claimed'?'claimed':''}`;
+    div.id = `tranche-${t.id}`;
+
+    const pill = t.status==='claimed'
+      ? '<span class="unlock-pill pill-claimed">✓ Claimed</span>'
+      : t.claimable
+        ? '<span class="unlock-pill pill-unlocked">🔓 Unlocked — Ready to Claim</span>'
+        : '<span class="unlock-pill pill-locked">🔒 Locked</span>';
+
+    div.innerHTML = `
+      <div class="tc-header">
+        <div>
+          <div class="tc-project">${t.project_name||'Vesting Project'}</div>
+          <div class="tc-group">${t.group_name||'Group'}</div>
+        </div>
+        <div>
+          <div class="tc-amount">${t.amount.toLocaleString()}</div>
+          <div class="tc-token">${t.asset_name}</div>
+        </div>
+      </div>
+      ${pill}
+      <div class="tc-date">Unlocks: <span class="date-val">${t.unlock_date}</span></div>
+      ${t.claimable
+        ? `<button class="btn-claim" id="claim-btn-${t.id}" onclick="claimTranche('${t.id}')">
+             🔓 Claim ${t.amount.toLocaleString()} ${t.asset_name}
+           </button>
+           <div class="claim-success" id="claim-success-${t.id}"></div>`
+        : t.status==='claimed'
+          ? `<div style="font-size:.78rem;color:var(--muted2)">Claim TX: <span style="font-family:'Space Mono',monospace">${(t.claim_tx_hash||'').slice(0,20)}...</span></div>`
+          : ''
+      }
+    `;
+    list.appendChild(div);
+  });
+}
+
+async function claimTranche(trancheId) {
+  if (!claimWalletApi) {
+    showErr('global-err','Wallet disconnected. Please reconnect to sign the claim transaction.');
+    return;
+  }
+  clearErr('global-err');
+  const btn     = document.getElementById(`claim-btn-${trancheId}`);
+  const success = document.getElementById(`claim-success-${trancheId}`);
+  btn.disabled  = true;
+  btn.innerHTML = '<span class="spinner"></span> Building TX…';
+
+  try {
+    // Build claim TX
+    const buildResp = await fetch('/api/build-claim-tx', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ tranche_id:trancheId, recipient_address:claimAddr, network:claimNetwork }),
+    });
+    const buildData = await buildResp.json();
+    if (buildData.error) throw new Error(buildData.error);
+
+    btn.innerHTML = '<span class="spinner"></span> Sign in wallet…';
+    const witnessHex = await claimWalletApi.signTx(buildData.tx_cbor, true);
+
+    btn.innerHTML = '<span class="spinner"></span> Submitting…';
+    const subResp = await fetch('/api/submit-claim-tx', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        server_tx_cbor:    buildData.tx_cbor,
+        wallet_witness_hex: witnessHex,
+        tranche_id:        trancheId,
+        network:           claimNetwork,
+      }),
+    });
+    const subData = await subResp.json();
+    if (subData.error) throw new Error(subData.error);
+
+    // Show success inline
+    btn.style.display = 'none';
+    success.textContent = `✅ Claimed! TX: ${subData.tx_hash.slice(0,24)}...`;
+    success.style.display = 'block';
+
+    // Refresh list after 2s
+    setTimeout(loadTranches, 2000);
+
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = '🔓 Retry Claim';
+    showErr('global-err','Claim failed: '+e.message);
+  }
+}
+
+function showErr(id,msg){const e=document.getElementById(id);if(!e)return;e.textContent=msg;e.style.display='block';}
+function clearErr(id){const e=document.getElementById(id);if(!e)return;e.textContent='';e.style.display='none';}
+</script>
+</body>
+</html>

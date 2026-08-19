@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Token Vesting Launchpad — MintMyToken</title>
+  <meta property="og:title" content="MintMyToken Vesting Launchpad">
+  <meta property="og:description" content="Trustless bulk token vesting on Cardano. Distribute to 1000+ wallets with on-chain timelocks.">
+  <meta property="og:image" content="https://mintmytoken.today/static/mintmytoken.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0b0e17;--bg2:#111522;--card:#151924;--card2:#1a2035;
+      --border:#1e2a45;--border2:#253050;
+      --blue:#1a56db;--blue2:#2d6ef7;--blue-glow:#1a56db40;
+      --gold:#f5a623;--gold2:#ffbd5a;
+      --text:#e4ecff;--muted:#6878a0;--muted2:#8896b8;
+      --success:#22c55e;--error:#ef4444;--warn:#f59e0b;
+      --radius:12px;--radius2:8px;
+    }
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;font-size:16px;line-height:1.6;min-height:100vh}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% -10%,#0d2060 0%,transparent 60%);pointer-events:none;z-index:0}
+
+    nav{position:sticky;top:0;z-index:100;backdrop-filter:blur(20px);background:rgba(11,14,23,.9);border-bottom:1px solid var(--border);padding:0 2rem}
+    .nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px}
+    .logo{display:flex;align-items:center;gap:10px;font-family:'Space Mono',monospace;font-weight:700;font-size:1.05rem;color:var(--text);text-decoration:none}
+    .logo img{height:28px;width:28px;border-radius:6px;object-fit:cover}
+    .nav-links{display:flex;gap:1.8rem;align-items:center}
+    .nav-links a{color:var(--muted2);text-decoration:none;font-size:.88rem;font-weight:500;transition:color .2s}
+    .nav-links a:hover{color:var(--text)}
+    .nav-links a.active{color:var(--blue2);font-weight:700}
+
+    main{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:2.5rem 1.5rem 6rem}
+    h1{font-size:1.9rem;font-weight:800;margin-bottom:.4rem}
+    .page-sub{color:var(--muted2);font-size:.92rem;margin-bottom:.5rem}
+
+    /* Trust badge */
+    .trust-badges{display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:2rem}
+    .badge{display:inline-flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--border2);border-radius:99px;padding:5px 14px;font-size:.75rem;font-weight:700;color:var(--muted2)}
+    .badge.green{border-color:#22c55e40;color:var(--success);background:#22c55e10}
+
+    /* Steps */
+    .step-tabs{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border)}
+    .step-tab{padding:12px 6px;text-align:center;font-size:.75rem;font-weight:600;color:var(--muted);position:relative;transition:color .2s}
+    .step-tab.active{color:var(--blue2)}
+    .step-tab.done{color:var(--success)}
+    .step-tab.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--blue2)}
+    .step-tab .sn{display:block;width:22px;height:22px;border-radius:50%;background:var(--card2);border:1px solid var(--border2);margin:0 auto 3px;line-height:20px;font-size:.7rem}
+    .step-tab.active .sn{background:var(--blue);border-color:var(--blue);color:#fff}
+    .step-tab.done   .sn{background:var(--success);border-color:var(--success);color:#fff}
+
+    .vest-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+    .step-panel{display:none;padding:2rem}
+    .step-panel.active{display:block}
+    .wizard-nav{display:flex;justify-content:space-between;align-items:center;padding:1.2rem 2rem;border-top:1px solid var(--border);background:var(--bg2)}
+
+    /* Forms */
+    .fl{display:block;font-size:.8rem;font-weight:600;color:var(--muted2);margin-bottom:5px;letter-spacing:.03em;text-transform:uppercase}
+    .fh{font-size:.75rem;color:var(--muted);margin-top:3px}
+    .fg{margin-bottom:1.3rem}
+    input,select,textarea{width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text);border-radius:var(--radius2);padding:11px 14px;font-family:'Syne',sans-serif;font-size:.92rem;outline:none;transition:border-color .2s,box-shadow .2s}
+    input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-glow)}
+    textarea{resize:vertical;min-height:80px;font-family:'Space Mono',monospace;font-size:.78rem}
+    select option{background:var(--card2)}
+    .r2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    .r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+    @media(max-width:600px){.r2,.r3{grid-template-columns:1fr}}
+
+    /* Groups */
+    .groups-list{display:flex;flex-direction:column;gap:1rem;margin-bottom:1.4rem}
+    .group-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:1.2rem;position:relative}
+    .group-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+    .group-name-badge{font-weight:700;font-size:.95rem}
+    .group-pct-badge{font-family:'Space Mono',monospace;font-size:.85rem;color:var(--blue2);background:var(--blue-glow);border:1px solid var(--blue);border-radius:6px;padding:2px 10px}
+    .btn-remove-group{background:transparent;border:1px solid #ef444440;color:var(--error);border-radius:6px;padding:3px 10px;cursor:pointer;font-size:.78rem;font-family:'Syne',sans-serif}
+    .btn-remove-group:hover{background:#ef444415}
+    .btn-add-group{background:transparent;border:1px dashed var(--border2);color:var(--muted2);border-radius:var(--radius2);padding:12px;width:100%;cursor:pointer;font-family:'Syne',sans-serif;font-size:.9rem;font-weight:600;transition:all .2s;margin-bottom:1.4rem}
+    .btn-add-group:hover{border-color:var(--blue);color:var(--blue2)}
+    .pct-bar{height:8px;background:var(--bg);border-radius:4px;margin-bottom:.5rem;overflow:hidden;border:1px solid var(--border)}
+    .pct-fill{height:100%;background:var(--blue);border-radius:4px;transition:width .3s}
+    .pct-fill.over{background:var(--error)}
+    .pct-label{font-size:.78rem;color:var(--muted2)}
+
+    /* CSV drop zone */
+    .csv-zone{border:2px dashed var(--border2);border-radius:var(--radius2);padding:1.2rem;text-align:center;cursor:pointer;transition:all .2s;position:relative;margin-top:.5rem}
+    .csv-zone:hover,.csv-zone.drag-over{border-color:var(--blue);background:var(--blue-glow)}
+    .csv-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .csv-zone .csv-icon{font-size:1.5rem;margin-bottom:4px}
+    .csv-zone .csv-text{font-size:.82rem;font-weight:600}
+    .csv-zone .csv-sub{font-size:.72rem;color:var(--muted2)}
+    .csv-sample{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.6rem .8rem;font-family:'Space Mono',monospace;font-size:.72rem;color:var(--muted2);margin-top:.6rem;text-align:left}
+
+    /* Wallet */
+    .wallet-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1rem}
+    .wallet-btn{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--border2);color:var(--text);padding:12px 16px;border-radius:var(--radius2);font-family:'Syne',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .2s;width:100%}
+    .wallet-btn:hover{border-color:var(--blue);background:var(--blue-glow)}
+    .wallet-btn img{width:20px;height:20px;border-radius:4px;object-fit:contain}
+
+    /* Batch progress */
+    .batch-progress{margin-bottom:1.4rem}
+    .progress-bar{height:10px;background:var(--bg2);border-radius:5px;overflow:hidden;border:1px solid var(--border);margin:.6rem 0}
+    .progress-fill{height:100%;background:var(--blue);border-radius:5px;transition:width .4s}
+    .batch-status{display:flex;flex-direction:column;gap:.5rem;max-height:280px;overflow-y:auto}
+    .batch-row{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);font-size:.84rem}
+    .batch-row.done{border-color:#22c55e40;background:#22c55e08}
+    .batch-row.active{border-color:var(--blue);background:var(--blue-glow)}
+    .batch-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0}
+    .batch-dot.done{background:var(--success)}
+    .batch-dot.active{background:var(--blue);animation:pulse 1.2s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.7)}}
+    .batch-label{flex:1}
+    .batch-hash{font-family:'Space Mono',monospace;font-size:.7rem;color:var(--muted2);word-break:break-all}
+
+    /* Info/review */
+    .info-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:1rem 1.2rem;font-size:.83rem;color:var(--muted2);margin-bottom:1rem}
+    .info-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:.86rem}
+    .info-row:last-child{border-bottom:none}
+    .ik{color:var(--muted2);font-weight:600}
+    .iv{font-family:'Space Mono',monospace;font-size:.78rem;text-align:right;word-break:break-all;color:var(--text)}
+    .cost-box{background:#f5a62312;border:1px solid #f5a62340;border-radius:var(--radius2);padding:1rem 1.2rem;margin-bottom:1rem}
+    .cost-title{font-weight:700;color:var(--gold2);font-size:.88rem;margin-bottom:.6rem}
+    .cost-row{display:flex;justify-content:space-between;font-size:.82rem;padding:3px 0;color:var(--muted2)}
+    .cost-total{display:flex;justify-content:space-between;font-size:.92rem;font-weight:700;color:var(--text);margin-top:.5rem;padding-top:.5rem;border-top:1px solid #f5a62340}
+
+    /* Status */
+    .err-msg{background:#ef444415;border:1px solid #ef444440;color:var(--error);border-radius:var(--radius2);padding:10px 14px;font-size:.84rem;margin-bottom:1rem;display:none}
+    .spinner{width:16px;height:16px;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* Buttons */
+    .btn{background:var(--blue);color:#fff;border:none;padding:12px 28px;border-radius:var(--radius2);font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s}
+    .btn:hover{background:var(--blue2);box-shadow:0 6px 24px var(--blue-glow)}
+    .btn:disabled{background:var(--card2);color:var(--muted);cursor:not-allowed;box-shadow:none}
+    .btn-outline{background:transparent;border:1px solid var(--border2);color:var(--muted2);padding:10px 22px;border-radius:var(--radius2);cursor:pointer;font-family:'Syne',sans-serif;font-size:.9rem;font-weight:600;transition:all .2s}
+    .btn-outline:hover{border-color:var(--muted2);color:var(--text)}
+    .btn-full{width:100%;display:block}
+
+    /* Success */
+    .success-hero{text-align:center;padding:1rem 0 1.5rem}
+    .success-icon{font-size:3rem;margin-bottom:.8rem;animation:bounceIn .6s cubic-bezier(.36,.07,.19,.97)}
+    @keyframes bounceIn{0%{transform:scale(0);opacity:0}60%{transform:scale(1.2)}100%{transform:scale(1);opacity:1}}
+    .action-link{display:block;text-align:center;margin-top:1rem;padding:12px;background:var(--blue-glow);border:1px solid #1a56db50;border-radius:var(--radius2);color:var(--blue2);text-decoration:none;font-weight:700;font-size:.9rem}
+
+    footer{position:relative;z-index:1;border-top:1px solid var(--border);text-align:center;padding:2rem;color:var(--muted);font-size:.82rem}
+    footer a{color:var(--muted2);text-decoration:none}
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">
+      <img src="/static/mintmytoken.png" alt="" onerror="this.style.display='none'">
+      MintMyToken
+    </a>
+    <div class="nav-links">
+      <a href="/">Mint</a>
+      <a href="/vest" class="active">Vesting</a>
+      <a href="/claim">Claim</a>
+      <a href="/terms" target="_blank">Terms</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <h1>🔒 Token Vesting Launchpad</h1>
+  <p class="page-sub">Distribute tokens to unlimited wallets with on-chain timelocks. Owner has zero control once locked.</p>
+  <div class="trust-badges">
+    <span class="badge green">✓ Trustless — native script timelocks</span>
+    <span class="badge green">✓ Owner cannot touch locked tokens</span>
+    <span class="badge green">✓ Verifiable on Cardano explorer</span>
+    <span class="badge">Bulk CSV upload · 1000+ addresses</span>
+    <span class="badge">Cliff & linear vesting</span>
+  </div>
+
+  <div class="vest-card">
+    <div class="step-tabs">
+      <div class="step-tab active" id="tab-1"><span class="sn" id="sn-1">1</span>Token</div>
+      <div class="step-tab" id="tab-2"><span class="sn" id="sn-2">2</span>Groups</div>
+      <div class="step-tab" id="tab-3"><span class="sn" id="sn-3">3</span>Review</div>
+      <div class="step-tab" id="tab-4"><span class="sn" id="sn-4">4</span>Sign &amp; Lock</div>
+    </div>
+
+    <!-- ─ STEP 1: Token Info ──────────────────────────────────── -->
+    <div class="step-panel active" id="panel-1">
+      <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:1.4rem">Token Information</h3>
+      <div class="err-msg" id="err-1"></div>
+
+      <div class="fg">
+        <label class="fl">Project / Token Name *</label>
+        <input type="text" id="project-name" placeholder="My Token Launch">
+      </div>
+
+      <div class="r2">
+        <div class="fg">
+          <label class="fl">Policy ID *</label>
+          <input type="text" id="policy-id" placeholder="6d44af4f954455...">
+          <div class="fh">From your mintmytoken.today mint</div>
+        </div>
+        <div class="fg">
+          <label class="fl">Asset Name *</label>
+          <input type="text" id="asset-name" placeholder="MYTOKEN" oninput="this.value=this.value.toUpperCase()">
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="fl">Total Supply to Vest *</label>
+        <input type="number" id="total-supply" placeholder="1000000" min="1">
+        <div class="fh">Must be ≤ your total minted supply. Remaining tokens stay in your wallet.</div>
+      </div>
+
+      <div class="fg">
+        <label class="fl">Network *</label>
+        <select id="vest-network">
+          <option value="mainnet">Mainnet — Real ADA</option>
+          <option value="preprod">Preprod — Testnet</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ─ STEP 2: Groups ─────────────────────────────────────── -->
+    <div class="step-panel" id="panel-2">
+      <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:.5rem">Allocation Groups</h3>
+      <p style="font-size:.83rem;color:var(--muted2);margin-bottom:1.2rem">
+        Create groups (Team, Investors, Community, etc.) each with their own vesting schedule and recipient list.
+        Group percentages must add up to 100%.
+      </p>
+      <div class="err-msg" id="err-2"></div>
+
+      <!-- % allocation bar -->
+      <div style="margin-bottom:1.4rem">
+        <div class="pct-bar"><div class="pct-fill" id="pct-fill" style="width:0%"></div></div>
+        <div class="pct-label"><span id="pct-used">0</span>% allocated of 100%</div>
+      </div>
+
+      <div class="groups-list" id="groups-list"></div>
+      <button class="btn-add-group" onclick="addGroup()">+ Add Group</button>
+    </div>
+
+    <!-- ─ STEP 3: Review ─────────────────────────────────────── -->
+    <div class="step-panel" id="panel-3">
+      <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:1.4rem">Review & Confirm</h3>
+      <div class="err-msg" id="err-3"></div>
+      <div id="review-content"></div>
+    </div>
+
+    <!-- ─ STEP 4: Sign & Lock ────────────────────────────────── -->
+    <div class="step-panel" id="panel-4">
+      <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:1.4rem">Connect Wallet &amp; Sign Batches</h3>
+      <div class="err-msg" id="err-4"></div>
+
+      <!-- Wallet choose -->
+      <div id="wall-choose">
+        <p style="font-size:.86rem;color:var(--muted2);margin-bottom:1.2rem">
+          Connect the wallet that <strong style="color:var(--text)">holds the tokens</strong>.
+          You will sign <span id="batch-count-hint" style="color:var(--blue2);font-weight:700">—</span> transactions
+          to lock all tokens in their on-chain script addresses.
+        </p>
+        <div class="wallet-grid">
+          <button class="wallet-btn" onclick="wallConnect('eternl')"><img src="https://eternl.io/icons/favicon-128x128.png" alt=""> Eternl</button>
+          <button class="wallet-btn" onclick="wallConnect('typhoncip30')"><img src="https://typhonwallet.io/favicon.ico" alt=""> Typhon</button>
+          <button class="wallet-btn" disabled title="Lace wallet not supported yet" style="opacity:.35;cursor:not-allowed;"><img src="https://lace.io/favicon.ico" alt=""> Lace <span style="font-size:.7rem;color:#ef4444;margin-left:4px;">(unsupported)</span></button>
+          <button class="wallet-btn" onclick="wallConnect('nufi')"><img src="https://nu.fi/favicon/favicon-32x32.png" alt=""> NuFi</button>
+        </div>
+      </div>
+
+      <!-- Signing session -->
+      <div id="wall-signing" style="display:none">
+        <div class="info-box" style="margin-bottom:1.2rem">
+          <div class="info-row"><span class="ik">Connected wallet</span><span class="iv" id="wall-addr-display">—</span></div>
+        </div>
+
+        <div class="batch-progress">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+            <span style="font-size:.84rem;font-weight:700">Signing progress</span>
+            <span style="font-family:'Space Mono',monospace;font-size:.8rem;color:var(--blue2)" id="batch-progress-text">0 / 0</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="batch-progress-fill" style="width:0%"></div></div>
+        </div>
+
+        <div class="batch-status" id="batch-status-list"></div>
+
+        <div style="margin-top:1.2rem;display:flex;gap:.8rem;flex-wrap:wrap">
+          <button class="btn btn-full" id="btn-sign-next" onclick="signNextBatch()" style="margin-top:0">
+            Sign Next Batch
+          </button>
+          <button class="btn-outline" onclick="wallDisconnect()">Disconnect</button>
+        </div>
+
+        <p style="font-size:.75rem;color:var(--muted);margin-top:.8rem;text-align:center">
+          Your wallet will prompt you for each batch. Sign each one — do not close this tab.
+        </p>
+      </div>
+
+      <!-- Complete -->
+      <div id="wall-done" style="display:none">
+        <div class="success-hero">
+          <div class="success-icon">🔒</div>
+          <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:.4rem">All Tokens Locked!</h2>
+          <p style="color:var(--muted2)">Your vesting schedule is enforced on-chain. Recipients can now claim.</p>
+        </div>
+        <div class="info-box">
+          <div class="info-row"><span class="ik">Project ID</span><span class="iv" id="done-project-id">—</span></div>
+          <div class="info-row"><span class="ik">Total recipients</span><span class="iv" id="done-recipients">—</span></div>
+          <div class="info-row"><span class="ik">Total tranches locked</span><span class="iv" id="done-tranches">—</span></div>
+          <div class="info-row"><span class="ik">Batches signed</span><span class="iv" id="done-batches">—</span></div>
+        </div>
+        <a href="/claim" class="action-link">→ Share Claim Page with Recipients</a>
+        <a id="dashboard-link" href="#" class="action-link" style="margin-top:.6rem;background:#22c55e10;border-color:#22c55e40;color:var(--success)">→ View Distribution Dashboard</a>
+      </div>
+    </div>
+
+    <div class="wizard-nav" id="wizard-nav">
+      <button class="btn-outline" id="btn-back" onclick="vestPrev()" style="visibility:hidden">← Back</button>
+      <button class="btn" id="btn-next" onclick="vestNext()" style="padding:11px 28px">Continue →</button>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p>MintMyToken · <a href="/">Mint Token</a> · <a href="/claim">Claim</a> · <a href="/terms">Terms</a></p>
+</footer>
+
+<script>
+/* ── State ─────────────────────────────────────────────────────────────── */
+let step       = 1;
+let groups     = [];
+let groupCount = 0;
+let walletApi  = null;
+let projectId  = null;
+let batches    = [];
+let batchIdx   = 0;
+let signedBatches = [];
+
+/* ── Navigation ─────────────────────────────────────────────────────────── */
+function setStep(n) {
+  for (let i=1;i<=4;i++) {
+    document.getElementById(`panel-${i}`).classList.toggle('active', i===n);
+    const t = document.getElementById(`tab-${i}`);
+    t.classList.remove('active','done');
+    if (i===n) t.classList.add('active');
+    if (i<n)  t.classList.add('done');
+    document.getElementById(`sn-${i}`).textContent = i<n ? '✓' : i;
+  }
+  document.getElementById('btn-back').style.visibility = n>1 ? 'visible' : 'hidden';
+  const showNav = n < 4;
+  document.getElementById('btn-next').style.display   = showNav ? 'inline-block' : 'none';
+  document.getElementById('wizard-nav').style.display = showNav ? 'flex' : 'none';
+  step = n;
+  if (n===3) buildReview();
+  if (n===4) initSigning();
+}
+
+function vestNext() { if (!validate()) return; setStep(step+1); }
+function vestPrev() { if (step>1) setStep(step-1); }
+
+/* ── Error helpers ────────────────────────────────────────────────────── */
+function showErr(id,msg){const e=document.getElementById(id);if(!e)return;e.textContent=msg;e.style.display='block';}
+function clearErr(id){const e=document.getElementById(id);if(!e)return;e.textContent='';e.style.display='none';}
+
+/* ── Validation ───────────────────────────────────────────────────────── */
+function validate() {
+  clearErr(`err-${step}`);
+  if (step===1) {
+    if (!v('policy-id'))    { showErr('err-1','Policy ID required'); return false; }
+    if (!v('asset-name'))   { showErr('err-1','Asset name required'); return false; }
+    if (!v('total-supply')) { showErr('err-1','Total supply required'); return false; }
+  }
+  if (step===2) {
+    if (groups.length===0)  { showErr('err-2','Add at least one group'); return false; }
+    const totalPct = groups.reduce((s,g)=>s+parseFloat(g.pct||0),0);
+    if (Math.abs(totalPct-100)>0.1) { showErr('err-2',`Percentages must total 100%. Currently ${totalPct.toFixed(1)}%`); return false; }
+    for (const g of groups) {
+      if (!g.csv || g.csv.trim().length<5) { showErr('err-2',`Group "${g.name}": CSV recipients required`); return false; }
+      if (!g.cliff_date && !g.end_date) { showErr('err-2',`Group "${g.name}": unlock date required`); return false; }
+    }
+  }
+  return true;
+}
+
+function v(id){ return document.getElementById(id)?.value?.trim(); }
+
+/* ── Groups ───────────────────────────────────────────────────────────── */
+const GROUP_COLORS = ['#1a56db','#22c55e','#f59e0b','#a855f7','#ef4444','#06b6d4'];
+
+function addGroup() {
+  const id = groupCount++;
+  const color = GROUP_COLORS[id % GROUP_COLORS.length];
+  groups.push({ _id:id, name:'', pct:0, vest_type:'cliff', cliff_date:'', end_date:'', num_tranches:4, csv:'' });
+  renderGroups();
+}
+
+function removeGroup(id) {
+  groups = groups.filter(g=>g._id!==id);
+  renderGroups();
+}
+
+function renderGroups() {
+  const list = document.getElementById('groups-list');
+  list.innerHTML = '';
+
+  groups.forEach((g, i) => {
+    const color = GROUP_COLORS[i % GROUP_COLORS.length];
+    const div = document.createElement('div');
+    div.className = 'group-card';
+    div.style.borderColor = color+'40';
+    div.innerHTML = `
+      <div class="group-card-header">
+        <span class="group-name-badge" style="color:${color}">
+          Group ${i+1}: <input type="text" style="background:transparent;border:none;border-bottom:1px solid ${color}40;color:var(--text);padding:2px 6px;width:120px;font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem"
+            placeholder="e.g. Team" value="${g.name}" oninput="groups[${i}].name=this.value">
+        </span>
+        <div style="display:flex;align-items:center;gap:.6rem">
+          <input type="number" style="width:70px;padding:4px 8px;font-family:'Space Mono',monospace;font-size:.85rem;text-align:center"
+            placeholder="%" min="0" max="100" step="0.1" value="${g.pct||''}"
+            oninput="groups[${i}].pct=parseFloat(this.value)||0;updatePctBar()">
+          <span style="font-size:.82rem;color:var(--muted2)">%</span>
+          <button class="btn-remove-group" onclick="removeGroup(${g._id})">✕</button>
+        </div>
+      </div>
+
+      <div class="r2" style="margin-bottom:1rem">
+        <div>
+          <label class="fl">Vesting Type</label>
+          <select onchange="groups[${i}].vest_type=this.value;renderGroups()">
+            <option value="cliff" ${g.vest_type==='cliff'?'selected':''}>🎯 Cliff — single unlock</option>
+            <option value="linear" ${g.vest_type==='linear'?'selected':''}>📈 Linear — gradual release</option>
+          </select>
+        </div>
+        <div>
+          ${g.vest_type==='linear'
+            ? `<label class="fl">Tranches</label>
+               <select onchange="groups[${i}].num_tranches=parseInt(this.value)">
+                 <option value="3" ${g.num_tranches===3?'selected':''}>3 tranches</option>
+                 <option value="4" ${g.num_tranches===4?'selected':''}>4 (quarterly)</option>
+                 <option value="6" ${g.num_tranches===6?'selected':''}>6 tranches</option>
+                 <option value="12" ${g.num_tranches===12?'selected':''}>12 (monthly)</option>
+               </select>`
+            : `<label class="fl">Unlock Date</label>
+               <input type="date" value="${g.end_date}" oninput="groups[${i}].end_date=this.value">`
+          }
+        </div>
+      </div>
+
+      ${g.vest_type==='linear' ? `
+      <div class="r2" style="margin-bottom:1rem">
+        <div><label class="fl">Start Date</label><input type="date" value="${g.cliff_date}" oninput="groups[${i}].cliff_date=this.value"></div>
+        <div><label class="fl">End Date</label><input type="date" value="${g.end_date}" oninput="groups[${i}].end_date=this.value"></div>
+      </div>` : ''}
+
+      <div>
+        <label class="fl">Recipients CSV</label>
+        <div class="csv-zone" id="csv-zone-${i}">
+          <input type="file" accept=".csv,.txt" onchange="handleCsvFile(${i}, this)">
+          <div class="csv-icon">📄</div>
+          <div class="csv-text">${g.csv ? '✅ CSV loaded — click to replace' : 'Drop CSV or click to browse'}</div>
+          <div class="csv-sub">${g.csv ? countCsvRows(g.csv)+' addresses' : 'address, amount_or_percentage'}</div>
+        </div>
+        <div class="csv-sample">
+address,amount<br>
+addr1qxy..., 5%<br>
+addr1qxz..., 50000<br>
+addr1qxa..., 3.5%
+        </div>
+        ${g.csv ? `<textarea style="margin-top:.5rem;height:60px;font-size:.7rem" readonly>${g.csv.split('\n').slice(0,4).join('\n')}${g.csv.split('\n').length>4?'\n...':''}</textarea>` : ''}
+      </div>
+    `;
+    list.appendChild(div);
+  });
+
+  updatePctBar();
+}
+
+function countCsvRows(csv) {
+  return Math.max(0, csv.trim().split('\n').length - 1);
+}
+
+function updatePctBar() {
+  const total = groups.reduce((s,g)=>s+parseFloat(g.pct||0),0);
+  const pct   = Math.min(100, total);
+  const fill  = document.getElementById('pct-fill');
+  const label = document.getElementById('pct-used');
+  fill.style.width = pct+'%';
+  fill.classList.toggle('over', total>100);
+  label.textContent = total.toFixed(1);
+}
+
+async function handleCsvFile(idx, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const text = await file.text();
+  groups[idx].csv = text;
+  renderGroups();
+}
+
+/* ── Review ───────────────────────────────────────────────────────────── */
+function buildReview() {
+  const totalSupply = parseInt(v('total-supply'))||0;
+  const network     = v('vest-network')||'mainnet';
+  const totalRecip  = groups.reduce((s,g)=>s+countCsvRows(g.csv),0);
+
+  // Rough cost calculation
+  const totalTranches = groups.reduce((s,g)=>{
+    const n = countCsvRows(g.csv);
+    const t = g.vest_type==='linear' ? parseInt(g.num_tranches)||1 : 1;
+    return s + n*t;
+  },0);
+  const numBatches = Math.ceil(totalTranches/20);
+  const minAdaCost = totalTranches * 2;
+  const txFeeEst   = numBatches * 0.2;
+
+  document.getElementById('batch-count-hint').textContent = numBatches;
+
+  const html = `
+    <div class="info-box" style="margin-bottom:1rem">
+      <div class="info-row"><span class="ik">Project</span><span class="iv">${v('project-name')||'—'}</span></div>
+      <div class="info-row"><span class="ik">Policy ID</span><span class="iv">${v('policy-id').slice(0,20)}...</span></div>
+      <div class="info-row"><span class="ik">Asset Name</span><span class="iv">${v('asset-name')}</span></div>
+      <div class="info-row"><span class="ik">Total Supply to Vest</span><span class="iv">${totalSupply.toLocaleString()}</span></div>
+      <div class="info-row"><span class="ik">Network</span><span class="iv">${network.toUpperCase()}</span></div>
+      <div class="info-row"><span class="ik">Total Recipients</span><span class="iv">${totalRecip.toLocaleString()}</span></div>
+      <div class="info-row"><span class="ik">Total Tranches</span><span class="iv">${totalTranches.toLocaleString()}</span></div>
+      <div class="info-row"><span class="ik">Signing Batches</span><span class="iv">${numBatches} transactions</span></div>
+    </div>
+
+    ${groups.map((g,i)=>`
+    <div class="info-box">
+      <div style="font-weight:700;margin-bottom:.6rem;color:${GROUP_COLORS[i%GROUP_COLORS.length]}">${g.name||'Group '+(i+1)} — ${g.pct}%</div>
+      <div class="info-row"><span class="ik">Tokens</span><span class="iv">${Math.round(totalSupply*g.pct/100).toLocaleString()}</span></div>
+      <div class="info-row"><span class="ik">Recipients</span><span class="iv">${countCsvRows(g.csv)}</span></div>
+      <div class="info-row"><span class="ik">Vesting</span><span class="iv">${g.vest_type==='cliff'?'Cliff: unlocks '+g.end_date:'Linear: '+g.num_tranches+' tranches until '+g.end_date}</span></div>
+    </div>`).join('')}
+
+    <div class="cost-box">
+      <div class="cost-title">💰 Estimated Cost</div>
+      <div class="cost-row"><span>Min UTXO (${totalTranches} locked UTXOs × 1.5 ADA)</span><span>~${(totalTranches*1.5).toLocaleString()} ADA</span></div>
+      <div class="cost-row"><span>TX fees (~${numBatches} batches × 0.2 ADA)</span><span>~${txFeeEst.toFixed(1)} ADA</span></div>
+      <div class="cost-row"><span>Service fee (one-time, all batches)</span><span>10 ADA</span></div>
+      <div class="cost-total"><span>Total ADA needed in wallet</span><span>~${(totalTranches*1.5+txFeeEst+10).toLocaleString()} ADA</span></div>
+      <div style="font-size:.75rem;color:var(--muted2);margin-top:.5rem;">💡 The 1.5 ADA per UTXO goes to the recipient along with their tokens when they claim — it is not lost.</div>
+    </div>
+
+    <div class="info-box" style="border-color:#22c55e40;background:#22c55e08">
+      🔒 <strong style="color:var(--success)">Anti-manipulation guarantee:</strong>
+      Once signed, tokens go directly into on-chain native script addresses.
+      Each address requires the <strong>recipient's signature + correct unlock time</strong>.
+      You (the owner) have <strong>zero keys</strong> that can touch these UTXOs.
+      This is enforced by Cardano consensus — not by us.
+    </div>
+  `;
+  document.getElementById('review-content').innerHTML = html;
+}
+
+/* ── Signing ──────────────────────────────────────────────────────────── */
+async function initSigning() {
+  // Step 4 init — wallet not yet connected
+  document.getElementById('wall-choose').style.display   = 'block';
+  document.getElementById('wall-signing').style.display  = 'none';
+  document.getElementById('wall-done').style.display     = 'none';
+}
+
+async function wallConnect(name) {
+  clearErr('err-4');
+  if (!window.cardano?.[name]) { showErr('err-4',`${name} wallet not found.`); return; }
+  try {
+    walletApi = await window.cardano[name].enable();
+    const rawAddr = await walletApi.getChangeAddress();
+    document.getElementById('wall-addr-display').textContent = rawAddr.slice(0,30)+'...';
+
+    // Create project on server
+    await createProject(rawAddr);
+  } catch(e) { showErr('err-4','Wallet error: '+(e?.info || e?.message || JSON.stringify(e))); }
+}
+
+function wallDisconnect() {
+  walletApi = null;
+  document.getElementById('wall-choose').style.display  = 'block';
+  document.getElementById('wall-signing').style.display = 'none';
+}
+
+async function createProject(ownerAddr) {
+  clearErr('err-4');
+  const totalSupply = parseInt(v('total-supply'));
+  const network     = v('vest-network');
+
+  const groupPayload = groups.map(g => ({
+    name:           g.name || 'Group',
+    pct:            parseFloat(g.pct),
+    vest_type:      g.vest_type,
+    cliff_unix:     g.cliff_date ? Math.floor(new Date(g.cliff_date+'T00:00:00Z').getTime()/1000) : null,
+    end_unix:       g.end_date   ? Math.floor(new Date(g.end_date+'T23:59:59Z').getTime()/1000)   : null,
+    num_tranches:   parseInt(g.num_tranches)||1,
+    recipients_csv: g.csv,
+  }));
+
+  try {
+    const resp = await fetch('/api/create-vest-project', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        project_name:  v('project-name'),
+        policy_id:     v('policy-id'),
+        asset_name:    v('asset-name'),
+        total_supply:  totalSupply,
+        network:       network,
+        owner_address: ownerAddr,
+        groups:        groupPayload,
+      }),
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+
+    projectId = data.project_id;
+    batches   = data.batches;
+    batchIdx  = 0;
+
+    document.getElementById('wall-choose').style.display  = 'none';
+    document.getElementById('wall-signing').style.display = 'block';
+    renderBatchList();
+    document.getElementById('batch-count-hint').textContent = batches.length;
+
+  } catch(e) {
+    showErr('err-4','Failed to create project: '+(e?.info || e?.message || JSON.stringify(e)));
+    walletApi = null;
+  }
+}
+
+function renderBatchList() {
+  const list = document.getElementById('batch-status-list');
+  list.innerHTML = batches.map((b,i) => `
+    <div class="batch-row ${i<batchIdx?'done':i===batchIdx?'active':''}" id="batch-row-${i}">
+      <div class="batch-dot ${i<batchIdx?'done':i===batchIdx?'active':''}"></div>
+      <div class="batch-label">Batch ${i+1} / ${batches.length} — ${b.output_count} outputs</div>
+      <div class="batch-hash" id="batch-hash-${i}">${signedBatches[i]||''}</div>
+    </div>
+  `).join('');
+
+  const pct = batches.length>0 ? (batchIdx/batches.length)*100 : 0;
+  document.getElementById('batch-progress-fill').style.width = pct+'%';
+  document.getElementById('batch-progress-text').textContent = `${batchIdx} / ${batches.length}`;
+
+  const btn = document.getElementById('btn-sign-next');
+  if (batchIdx >= batches.length) {
+    btn.disabled = true;
+    btn.textContent = '✅ All batches signed!';
+    showDone();
+  } else {
+    btn.disabled = false;
+    btn.textContent = `Sign Batch ${batchIdx+1} of ${batches.length}`;
+  }
+}
+
+async function signNextBatch() {
+  if (!walletApi || batchIdx >= batches.length) return;
+  clearErr('err-4');
+
+  const btn = document.getElementById('btn-sign-next');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Building TX…';
+
+  try {
+    const rawAddr = await walletApi.getChangeAddress();
+    const batch   = batches[batchIdx];
+
+    // Build TX on server
+    const buildResp = await fetch('/api/build-batch-tx', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ batch_id: batch.batch_id, owner_address: rawAddr }),
+    });
+    const buildData = await buildResp.json();
+    if (buildData.error) throw new Error(buildData.error);
+
+    btn.innerHTML = '<span class="spinner"></span> Waiting for signature…';
+    const witnessHex = await walletApi.signTx(buildData.tx_cbor, true);
+
+    btn.innerHTML = '<span class="spinner"></span> Submitting…';
+    const subResp = await fetch('/api/submit-batch-tx', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ batch_id: batch.batch_id, wallet_witness_hex: witnessHex }),
+    });
+    const subData = await subResp.json();
+    if (subData.error) throw new Error(subData.error);
+
+    signedBatches[batchIdx] = subData.tx_hash;
+    batchIdx++;
+    renderBatchList();
+
+    // Auto-proceed after short pause
+    if (batchIdx < batches.length) {
+      setTimeout(() => signNextBatch(), 800);
+    }
+
+  } catch(e) {
+    showErr('err-4','Error on batch '+(batchIdx+1)+': '+(e?.info || e?.message || JSON.stringify(e)));
+    btn.disabled = false;
+    btn.textContent = `Retry Batch ${batchIdx+1}`;
+  }
+}
+
+function showDone() {
+  document.getElementById('wall-signing').style.display = 'none';
+  document.getElementById('wall-done').style.display    = 'block';
+  document.getElementById('wizard-nav').style.display   = 'none';
+  document.getElementById('done-project-id').textContent   = projectId;
+  document.getElementById('done-batches').textContent       = batches.length+' batches';
+  document.getElementById('dashboard-link').href = '/vest/dashboard?id='+projectId;
+
+  // Get stats from server
+  fetch('/api/vest-project/'+projectId)
+    .then(r=>r.json()).then(d=>{
+      if (d.stats) {
+        document.getElementById('done-tranches').textContent = d.stats.total_tranches+' tranches';
+      }
+    }).catch(()=>{});
+}
+</script>
+</body>
+</html>

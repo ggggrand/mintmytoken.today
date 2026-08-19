@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vesting Dashboard — MintMyToken</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#0b0e17;--bg2:#111522;--card:#151924;--border:#1e2a45;--border2:#253050;--blue:#1a56db;--blue2:#2d6ef7;--text:#e4ecff;--muted:#6878a0;--muted2:#8896b8;--success:#22c55e;--error:#ef4444;--radius:12px}
+    body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;padding:2rem 1.5rem 4rem}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% -10%,#0d2060 0%,transparent 60%);pointer-events:none;z-index:0}
+    main{position:relative;z-index:1;max-width:900px;margin:0 auto}
+    h1{font-size:1.7rem;font-weight:800;margin-bottom:.3rem}
+    .sub{color:var(--muted2);font-size:.88rem;margin-bottom:2rem}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem}
+    .stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;text-align:center}
+    .stat-val{font-family:'Space Mono',monospace;font-size:1.6rem;font-weight:700;margin-bottom:.3rem}
+    .stat-label{font-size:.78rem;color:var(--muted2)}
+    .section-title{font-size:.82rem;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem}
+    .batch-list{display:flex;flex-direction:column;gap:.5rem;margin-bottom:2rem}
+    .batch-row{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.9rem 1.2rem;display:flex;align-items:center;gap:1rem;font-size:.84rem}
+    .batch-row.confirmed{border-color:#22c55e40}
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0}
+    .dot.confirmed{background:var(--success)}
+    .dot.pending{background:var(--muted)}
+    .hash{font-family:'Space Mono',monospace;font-size:.72rem;color:var(--muted2);margin-left:auto;word-break:break-all;text-align:right;max-width:300px}
+    a.hash-link{color:var(--blue2);text-decoration:none}
+    a.hash-link:hover{text-decoration:underline}
+    .back{display:inline-flex;align-items:center;gap:6px;color:var(--muted2);text-decoration:none;font-size:.88rem;margin-bottom:1.5rem}
+    .back:hover{color:var(--text)}
+    @media(max-width:500px){.stats{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<main>
+  <a href="/vest" class="back">← Back to Vesting</a>
+  <h1>📊 Distribution Dashboard</h1>
+  <p class="sub">{{ data.project.project_name or 'Vesting Project' }} · {{ data.project.network.upper() }} · {{ data.project.asset_name }}</p>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-val" style="color:var(--blue2)">{{ data.stats.total_tranches or 0 }}</div>
+      <div class="stat-label">Total Tranches</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" style="color:var(--success)">{{ data.stats.claimed or 0 }}</div>
+      <div class="stat-label">Claimed</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" style="color:var(--gold2)">{{ data.stats.locked or 0 }}</div>
+      <div class="stat-label">Still Locked</div>
+    </div>
+  </div>
+
+  <div class="section-title">Signing Batches</div>
+  <div class="batch-list">
+    {% for b in data.batches %}
+    <div class="batch-row {{ 'confirmed' if b.status == 'confirmed' else '' }}">
+      <div class="dot {{ 'confirmed' if b.status == 'confirmed' else 'pending' }}"></div>
+      <div>Batch {{ b.batch_index + 1 }} — {{ b.output_count }} outputs</div>
+      <div style="font-size:.75rem;padding:2px 8px;border-radius:4px;background:{{ '#22c55e20' if b.status=='confirmed' else 'var(--bg2)' }};color:{{ 'var(--success)' if b.status=='confirmed' else 'var(--muted2)' }}">
+        {{ b.status.upper() }}
+      </div>
+      {% if b.tx_hash %}
+      <a class="hash hash-link" href="https://{{ '' if data.project.network == 'mainnet' else 'preprod.' }}cardanoscan.io/transaction/{{ b.tx_hash }}" target="_blank">
+        {{ b.tx_hash[:20] }}...
+      </a>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="section-title">Groups</div>
+  <div class="batch-list">
+    {% for g in data.groups %}
+    <div class="batch-row">
+      <div>{{ g.name }}</div>
+      <div style="font-family:'Space Mono',monospace;font-size:.82rem;color:var(--blue2)">{{ g.pct }}%</div>
+      <div style="color:var(--muted2);font-size:.8rem">{{ g.total_tokens | int | string }} tokens · {{ g.vest_type }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</main>
+</body>
+</html>
