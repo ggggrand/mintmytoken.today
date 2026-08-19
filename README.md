@@ -115,7 +115,6 @@ mintmytoken/
 │   ├── vest.html          # Vesting launchpad
 │   ├── claim.html         # Token claim portal
 │   ├── vest_dashboard.html # Distribution dashboard
-│   └── terms.html         # Terms and conditions
 ├── static/
 │   └── uploads/           # User-uploaded token images
 ├── sessions/              # Minting session records
